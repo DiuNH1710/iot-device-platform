@@ -1,3 +1,4 @@
+from app.api import alert_routes
 from fastapi import FastAPI
 from app.api.device_routes import router as device_router
 from app.api import telemetry_routes
@@ -17,6 +18,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.include_router(device_router, prefix="/devices", tags=["devices"])
 app.include_router(telemetry_routes.router)
+app.include_router(alert_routes.router)
 
 
 @app.get("/")
