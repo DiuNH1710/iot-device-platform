@@ -124,3 +124,11 @@ def get_stats(device_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Device not found")
 
     return telemetry_service.get_telemetry_stats(db, device_id)
+
+@router.post("/{device_id}/viewers")
+def add_viewer(
+    device_id: int,
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    return device_service.add_viewer(db, device_id, user_id)

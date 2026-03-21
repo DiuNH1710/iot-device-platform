@@ -1,4 +1,5 @@
 from app.api import alert_routes
+from app.models import device_viewers
 from fastapi import FastAPI
 from app.api.device_routes import router as device_router
 from app.api import telemetry_routes
@@ -6,7 +7,6 @@ from app.database.db import Base, engine
 from app.models import (
     user,
     device,
-    device_viewer,
     telemetry,
     device_attribute,
     alert_rule,
