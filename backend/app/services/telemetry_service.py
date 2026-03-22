@@ -8,23 +8,21 @@ from app.models.device import Device
 from app.schemas.telemetry_schema import TelemetryCreate
 
 
-def create_telemetry(db: Session, telemetry: TelemetryCreate):
+def create_telemetry(db: Session, telemetry: TelemetryCreate, device_id: int):
 
-    # 1 tìm device bằng token
-    device = db.query(Device).filter(
-        Device.device_token == telemetry.device_token
-    ).first()
-
-    if not device:
-        raise HTTPException(status_code=404, detail="Device not found")
-
-    # 2 tạo telemetry record
     new_telemetry = Telemetry(
-        device_id=device.id,
+        device_id=device_id,
         voltage=telemetry.voltage,
         temperature=telemetry.temperature,
         current=telemetry.current
     )
+
+    db.add(new_telemetry)
+    db.commit()
+    db.refresh(new_telemetry)
+
+    alert_service.check_alerts(db, new_telemetry)
+    return new_telemetry
 
     db.add(new_telemetry)
     db.commit()

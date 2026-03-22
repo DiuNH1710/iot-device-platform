@@ -1,17 +1,9 @@
-from app.database.db import SessionLocal      
+from app.database.db import SessionLocal, get_db      
 from fastapi import Depends, HTTPException
 from jose import jwt
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.models.user import User
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-        
 
 
 security = HTTPBearer()

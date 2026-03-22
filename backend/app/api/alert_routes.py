@@ -1,9 +1,9 @@
 
+from app.database.db import get_db
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.database.dependencies import get_db
 from app.schemas.alert_history_schema import AlertHistoryResponse
 from app.schemas.alert_schema import AlertRuleCreate, AlertRuleResponse
 from app.services import alert_service

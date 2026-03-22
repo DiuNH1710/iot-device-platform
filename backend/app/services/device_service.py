@@ -1,21 +1,21 @@
+from sqlalchemy import or_
 import uuid
 from fastapi import Depends
-from app.database.dependencies import get_current_user
+from app.dependencies.auth import get_current_user
 from sqlalchemy.orm import Session
 from app.models.device_viewers import DeviceViewer
 from app.models.device import Device
 from app.schemas.device_schema import DeviceCreate
 
 
-def create_device(db: Session, device_data: DeviceCreate,  current_user=Depends(get_current_user)):
-
+def create_device(db: Session, device_data: DeviceCreate, owner_id: int):
     device_token = str(uuid.uuid4())
 
     device = Device(
         imei=device_data.imei,
         name=device_data.name,
         description=device_data.description,
-        owner_id=current_user.id,
+        owner_id=owner_id,
         device_token=device_token
     )
 
@@ -33,6 +33,13 @@ def get_devices(db: Session):
 def get_device_by_id(db: Session, device_id: int):
     return db.query(Device).filter(Device.id == device_id).first()
 
+def get_devices_by_user(db: Session, user_id: int):
+    return db.query(Device).outerjoin(DeviceViewer).filter(
+        or_(
+            Device.owner_id == user_id,
+            DeviceViewer.user_id == user_id
+        )
+    ).all()
 
 def delete_device(db: Session, device_id: int):
 
@@ -47,19 +54,37 @@ def delete_device(db: Session, device_id: int):
     return device
 
 def add_viewer(db: Session, device_id: int, user_id: int):
-    viewer = DeviceViewer(device_id=device_id, user_id=user_id)
-    db.add(viewer)
-    db.commit()
-    return viewer
 
-def check_permission(db: Session, device_id: int, user_id: int):
-    device = db.query(Device).filter(Device.id == device_id).first()
-    if device.owner_id == user_id:
-        return True
-
-    viewer = db.query(DeviceViewer).filter(
+    # check trùng
+    exists = db.query(DeviceViewer).filter(
         DeviceViewer.device_id == device_id,
         DeviceViewer.user_id == user_id
     ).first()
 
-    return viewer is not None
+    if exists:
+        raise HTTPException(400, "Viewer already exists")
+
+    # check không add owner
+    device = db.query(Device).filter(Device.id == device_id).first()
+
+    if device.owner_id == user_id:
+        raise HTTPException(400, "Owner cannot be viewer")
+
+    viewer = DeviceViewer(
+        device_id=device_id,
+        user_id=user_id
+    )
+
+    db.add(viewer)
+    db.commit()
+    db.refresh(viewer)
+
+    return viewer
+
+def is_viewer(db: Session, device_id: int, user_id: int) -> bool:
+    return db.query(DeviceViewer).filter(
+        DeviceViewer.device_id == device_id,
+        DeviceViewer.user_id == user_id
+    ).first() is not None
+
+

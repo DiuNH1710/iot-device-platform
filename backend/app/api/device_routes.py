@@ -1,14 +1,16 @@
 
+from app.dependencies.permission import device_permission
+from app.dependencies.auth import get_current_user
+from app.models.device_viewers import DeviceViewer
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.database.db import SessionLocal
+from app.database.db import SessionLocal, get_db
 from app.schemas.device_schema import DeviceCreate, DeviceResponse
 from app.services import device_service
 from app.services import telemetry_service
 from app.schemas.telemetry_schema import TelemetryResponse, TelemetryStats
-from app.database.dependencies import get_db
 from app.services import device_attribute_service
 from app.schemas.device_attribute_schema import (
     DeviceAttributeCreate,
@@ -22,21 +24,27 @@ router = APIRouter()
 
 
 @router.post("/", response_model=DeviceResponse)
-def create_device(device: DeviceCreate, db: Session = Depends(get_db)):
-
-    owner_id = 1  # tạm hardcode vì chưa có auth
-
-    return device_service.create_device(db, device, owner_id)
+def create_device(
+    device: DeviceCreate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return device_service.create_device(db, device, current_user.id)
 
 
 @router.get("/", response_model=List[DeviceResponse])
-def list_devices(db: Session = Depends(get_db)):
-
-    return device_service.get_devices(db)
+def list_devices(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return device_service.get_devices_by_user(db, current_user.id)
 
 
 @router.get("/{device_id}", response_model=DeviceResponse)
-def get_device(device_id: int, db: Session = Depends(get_db)):
+def get_device(
+    device_id: int,
+    db: Session = Depends(get_db),   
+    _: bool = Depends(device_permission("viewer"))):
 
     device = device_service.get_device_by_id(db, device_id)
 
@@ -47,7 +55,11 @@ def get_device(device_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/{device_id}")
-def delete_device(device_id: int, db: Session = Depends(get_db)):
+def delete_device(
+    device_id: int, 
+    db: Session = Depends(get_db),
+    _: bool = Depends(device_permission("owner"))
+    ):
 
     device = device_service.delete_device(db, device_id)
 
@@ -63,7 +75,8 @@ def get_device_telemetry(
     limit: int = 100,
     from_time: Optional[datetime] = None,
     to_time: Optional[datetime] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _: bool = Depends(device_permission())
 ):
     device = device_service.get_device_by_id(db, device_id)
     if not device:
@@ -77,7 +90,8 @@ def get_device_telemetry(
 @router.get("/{device_id}/telemetry/latest", response_model=TelemetryResponse)
 def get_latest_telemetry(
     device_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _: bool = Depends(device_permission("viewer"))
 ):
     device = device_service.get_device_by_id(db, device_id)
     if not device:
@@ -94,7 +108,8 @@ def get_latest_telemetry(
 def create_attribute(
     device_id: int,
     data: DeviceAttributeCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _: bool = Depends(device_permission("owner"))
 ):
     device = device_service.get_device_by_id(db, device_id)
     if not device:
@@ -106,7 +121,8 @@ def create_attribute(
 @router.get("/{device_id}/attributes", response_model=List[DeviceAttributeResponse])
 def get_attributes(
     device_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _: bool = Depends(device_permission("viewer"))
 ):
     device = device_service.get_device_by_id(db, device_id)
     if not device:
@@ -118,7 +134,11 @@ def get_attributes(
 
 
 @router.get("/{device_id}/telemetry/stats", response_model=TelemetryStats)
-def get_stats(device_id: int, db: Session = Depends(get_db)):
+def get_stats(
+    device_id: int, 
+    db: Session = Depends(get_db),
+    _: bool = Depends(device_permission("viewer"))
+    ):
     device = device_service.get_device_by_id(db, device_id)
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
@@ -127,8 +147,11 @@ def get_stats(device_id: int, db: Session = Depends(get_db)):
 
 @router.post("/{device_id}/viewers")
 def add_viewer(
-    device_id: int,
-    user_id: int,
-    db: Session = Depends(get_db)
-):
+    device_id: int, 
+    user_id: int, 
+    db: Session = Depends(get_db),
+    _: bool = Depends(device_permission("owner"))
+    ):
+    
     return device_service.add_viewer(db, device_id, user_id)
+

@@ -2,7 +2,6 @@ from pydantic import BaseModel
 
 
 class TelemetryCreate(BaseModel):
-    device_token: str
     voltage: float
     temperature: float
     current: float
