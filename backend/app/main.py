@@ -3,6 +3,7 @@ from app.models import device_viewers
 from fastapi import FastAPI
 from app.api.device_routes import router as device_router
 from app.api import telemetry_routes
+from app.api import auth_routes 
 from app.database.db import Base, engine
 from app.models import (
     user,
@@ -19,6 +20,7 @@ app = FastAPI()
 app.include_router(device_router, prefix="/devices", tags=["devices"])
 app.include_router(telemetry_routes.router)
 app.include_router(alert_routes.router)
+app.include_router(auth_routes.router)
 
 
 @app.get("/")
