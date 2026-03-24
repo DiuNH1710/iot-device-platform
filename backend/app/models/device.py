@@ -14,7 +14,7 @@ class Device(Base):
 
     description = Column(Text)
 
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     device_token = Column(Text, nullable=False)
 

@@ -16,7 +16,6 @@ class DeviceResponse(BaseModel):
     imei: str
     name: str
     description: Optional[str]
-    device_token: str
     owner_id: int
     created_at: datetime
 
