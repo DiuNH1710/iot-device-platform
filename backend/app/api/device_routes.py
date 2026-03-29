@@ -15,6 +15,7 @@ from app.schemas.device_attribute_schema import (
     DeviceAttributeCreate,
     DeviceAttributeResponse
 )
+from app.schemas.device_viewer_schema import DeviceViewerEntry
 
 from typing import Optional
 from datetime import datetime
@@ -123,6 +124,16 @@ def get_stats(
     return telemetry_service.get_telemetry_stats(db, device_id, metric=metric)
 
 
+@router.get("/{device_id}/viewers", response_model=List[DeviceViewerEntry])
+def list_viewers(
+    device_id: int,
+    db: Session = Depends(get_db),
+    _: bool = Depends(device_permission("viewer")),
+):
+    device_service.get_device_or_raise(db, device_id)
+    return device_service.list_viewers(db, device_id)
+
+
 @router.post("/{device_id}/viewers")
 def add_viewer(
     device_id: int,
@@ -132,3 +143,25 @@ def add_viewer(
 ):
 
     return device_service.add_viewer(db, device_id, user_id)
+
+
+@router.delete("/{device_id}/viewers/{viewer_user_id}")
+def remove_viewer(
+    device_id: int,
+    viewer_user_id: int,
+    db: Session = Depends(get_db),
+    _: bool = Depends(device_permission("owner")),
+):
+    device_service.remove_viewer(db, device_id, viewer_user_id)
+    return {"message": "Viewer removed"}
+
+
+@router.delete("/{device_id}/attributes/{attribute_id}")
+def delete_attribute(
+    device_id: int,
+    attribute_id: int,
+    db: Session = Depends(get_db),
+    _: bool = Depends(device_permission("owner")),
+):
+    device_attribute_service.delete_attribute(db, device_id, attribute_id)
+    return {"message": "Attribute deleted"}

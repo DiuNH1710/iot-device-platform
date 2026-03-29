@@ -35,6 +35,12 @@ def authenticate_user_or_raise(db: Session, username: str, password: str):
     return user
 
 
+def list_users_public(db: Session):
+    """Return id + username for all users (authenticated caller)."""
+    users = db.query(User).order_by(User.username.asc()).all()
+    return users
+
+
 def create_user(db: Session, data):
 
     if db.query(User).filter(User.username == data.username).first():

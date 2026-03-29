@@ -2,11 +2,15 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { AuthLayout } from '../layouts/AuthLayout'
 import { MainLayout } from '../layouts/MainLayout'
+import { DeviceLayout } from '../layouts/DeviceLayout'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { DeviceListPage } from '../pages/DeviceListPage'
-import { DeviceDetailPage } from '../pages/DeviceDetailPage'
+import { DeviceOverviewPage } from '../pages/DeviceOverviewPage'
+import { DeviceAttributesPage } from '../pages/DeviceAttributesPage'
+import { DeviceViewersPage } from '../pages/DeviceViewersPage'
+import { DeviceAlertHistoryPage } from '../pages/DeviceAlertHistoryPage'
 import { AlertsPage } from '../pages/AlertsPage'
 
 function ProtectedRoute({ children }) {
@@ -35,7 +39,12 @@ export function AppRoutes() {
       >
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/devices" element={<DeviceListPage />} />
-        <Route path="/devices/:id" element={<DeviceDetailPage />} />
+        <Route path="/devices/:id" element={<DeviceLayout />}>
+          <Route index element={<DeviceOverviewPage />} />
+          <Route path="attributes" element={<DeviceAttributesPage />} />
+          <Route path="viewers" element={<DeviceViewersPage />} />
+          <Route path="alerts/history" element={<DeviceAlertHistoryPage />} />
+        </Route>
         <Route path="/alerts" element={<AlertsPage />} />
       </Route>
 

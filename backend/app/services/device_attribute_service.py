@@ -33,3 +33,16 @@ def get_attributes_by_device(db: Session, device_id: int):
     return db.query(DeviceAttribute).filter(
         DeviceAttribute.device_id == device_id
     ).all()
+
+
+def delete_attribute(db: Session, device_id: int, attribute_id: int):
+    from app.exceptions import NotFoundError
+
+    attr = db.query(DeviceAttribute).filter(
+        DeviceAttribute.id == attribute_id,
+        DeviceAttribute.device_id == device_id,
+    ).first()
+    if not attr:
+        raise NotFoundError("Attribute not found")
+    db.delete(attr)
+    db.commit()

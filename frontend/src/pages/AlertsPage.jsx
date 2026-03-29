@@ -40,12 +40,20 @@ export function AlertsPage() {
                     <h3 className="font-semibold text-slate-900">{d.name || 'Unnamed device'}</h3>
                     <p className="text-sm text-slate-500">{d.imei}</p>
                   </div>
-                  <Link
-                    to={`/devices/${d.id}`}
-                    className="flex shrink-0 items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
-                  >
-                    Manage rules <IoChevronForward className="h-4 w-4" />
-                  </Link>
+                  <div className="flex shrink-0 gap-2">
+                    <Link
+                      to={`/devices/${d.id}/alerts/history`}
+                      className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                    >
+                      History
+                    </Link>
+                    <Link
+                      to={`/devices/${d.id}`}
+                      className="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                    >
+                      Rules <IoChevronForward className="h-4 w-4" />
+                    </Link>
+                  </div>
                 </div>
               </Card>
             </li>

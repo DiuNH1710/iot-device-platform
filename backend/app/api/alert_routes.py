@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.schemas.alert_history_schema import AlertHistoryResponse
-from app.schemas.alert_schema import AlertRuleCreate, AlertRuleResponse
+from app.schemas.alert_schema import AlertRuleCreate, AlertRuleResponse, AlertRuleUpdate
 from app.services import alert_service, device_service
 
 router = APIRouter(prefix="/alert-rules", tags=["Alert"])
@@ -29,7 +29,17 @@ def get_rules(
     db: Session = Depends(get_db),
     _: bool = Depends(device_permission("viewer"))
 ):
-    return alert_service.get_rules_by_device(db, device_id)
+    return alert_service.get_all_rules_by_device(db, device_id)
+
+
+@router.patch("/rules/{rule_id}", response_model=AlertRuleResponse)
+def update_rule(
+    rule_id: int,
+    body: AlertRuleUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    return alert_service.update_alert_rule(db, rule_id, body, current_user.id)
 
 
 @router.get("/device/{device_id}", response_model=List[AlertHistoryResponse])

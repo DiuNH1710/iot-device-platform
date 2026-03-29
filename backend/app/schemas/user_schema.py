@@ -21,3 +21,13 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UserPublic(BaseModel):
+    """Minimal user info for sharing / picker UIs."""
+
+    id: int
+    username: str
+
+    class Config:
+        from_attributes = True
