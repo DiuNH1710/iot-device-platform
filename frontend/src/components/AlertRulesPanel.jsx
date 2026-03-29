@@ -1,25 +1,26 @@
-import { useState } from 'react'
-import api from '../services/api'
-import { Button } from './Button'
-import { Input } from './Input'
-import { Modal } from './Modal'
-import { AlertForm } from './AlertForm'
-import { vi } from '../constants/i18n'
+import { useState } from "react";
+import api from "../services/api";
+import { Button } from "./Button";
+import { Input } from "./Input";
+import { Modal } from "./Modal";
+import { AlertForm } from "./AlertForm";
+import { vi } from "../constants/i18n";
 
 function getErrorMessage(err) {
-  const d = err.response?.data
-  if (typeof d?.detail === 'string') return d.detail
-  if (Array.isArray(d?.detail)) return d.detail.map((x) => x.msg || x).join(', ')
-  return err.message || vi.errors.requestFailed
+  const d = err.response?.data;
+  if (typeof d?.detail === "string") return d.detail;
+  if (Array.isArray(d?.detail))
+    return d.detail.map((x) => x.msg || x).join(", ");
+  return err.message || vi.errors.requestFailed;
 }
 
 const CONDITIONS = [
-  { value: '>', label: vi.alertRules.condGreater },
-  { value: '<', label: vi.alertRules.condLess },
-  { value: '>=', label: vi.alertRules.condGte },
-  { value: '<=', label: vi.alertRules.condLte },
-  { value: '==', label: vi.alertRules.condEq },
-]
+  { value: ">", label: vi.alertRules.condGreater },
+  { value: "<", label: vi.alertRules.condLess },
+  { value: ">=", label: vi.alertRules.condGte },
+  { value: "<=", label: vi.alertRules.condLte },
+  { value: "==", label: vi.alertRules.condEq },
+];
 
 /**
  * @param {object} props
@@ -30,44 +31,53 @@ const CONDITIONS = [
  * @param {boolean} props.loading
  * @param {() => void} props.onRefresh
  */
-export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loading, onRefresh }) {
-  const [editRule, setEditRule] = useState(null)
-  const [saving, setSaving] = useState(false)
+export function AlertRulesPanel({
+  isOwner,
+  deviceId,
+  metricOptions,
+  rules,
+  loading,
+  onRefresh,
+}) {
+  const [editRule, setEditRule] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const toggleEnabled = async (rule) => {
-    setSaving(true)
+    setSaving(true);
     try {
-      await api.patch(`/alert-rules/rules/${rule.id}`, { enabled: !rule.enabled })
-      onRefresh?.()
+      await api.patch(`/alert-rules/rules/${rule.id}`, {
+        enabled: !rule.enabled,
+      });
+      onRefresh?.();
     } catch (e) {
-      alert(getErrorMessage(e))
+      alert(getErrorMessage(e));
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const saveEdit = async (e) => {
-    e.preventDefault()
-    if (!editRule) return
-    const fd = new FormData(e.target)
-    const threshold = parseFloat(fd.get('threshold'), 10)
-    if (Number.isNaN(threshold)) return
-    setSaving(true)
+    e.preventDefault();
+    if (!editRule) return;
+    const fd = new FormData(e.target);
+    const threshold = parseFloat(fd.get("threshold"), 10);
+    if (Number.isNaN(threshold)) return;
+    setSaving(true);
     try {
       await api.patch(`/alert-rules/rules/${editRule.id}`, {
-        metric_name: fd.get('metric_name'),
-        condition: fd.get('condition'),
+        metric_name: fd.get("metric_name"),
+        condition: fd.get("condition"),
         threshold,
-        message: fd.get('message'),
-      })
-      setEditRule(null)
-      onRefresh?.()
+        message: fd.get("message"),
+      });
+      setEditRule(null);
+      onRefresh?.();
     } catch (err) {
-      alert(getErrorMessage(err))
+      alert(getErrorMessage(err));
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   return (
     <div>
@@ -84,24 +94,39 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
             >
               <div>
                 <span className="font-medium text-slate-800">
-                  {r.metric_name} {r.condition === '==' ? '=' : r.condition} {r.threshold}
+                  {r.metric_name} {r.condition === "==" ? "=" : r.condition}{" "}
+                  {r.threshold}
                 </span>
                 <p className="mt-1 text-xs text-slate-500">{r.message}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                    r.enabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
+                    r.enabled
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-slate-200 text-slate-600"
                   }`}
                 >
                   {r.enabled ? vi.common.enabled : vi.common.disabled}
                 </span>
                 {isOwner && (
                   <>
-                    <Button type="button" variant="secondary" disabled={saving} onClick={() => toggleEnabled(r)}>
+                    <Button
+                      className="cursor-pointer"
+                      type="button"
+                      variant="secondary"
+                      disabled={saving}
+                      onClick={() => toggleEnabled(r)}
+                    >
                       {r.enabled ? vi.alertRules.disable : vi.alertRules.enable}
                     </Button>
-                    <Button type="button" variant="secondary" disabled={saving} onClick={() => setEditRule(r)}>
+                    <Button
+                      className="cursor-pointer"
+                      type="button"
+                      variant="secondary"
+                      disabled={saving}
+                      onClick={() => setEditRule(r)}
+                    >
                       {vi.common.edit}
                     </Button>
                   </>
@@ -114,24 +139,26 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
 
       {isOwner && (
         <div className="border-t border-slate-100 pt-6">
-          <h4 className="mb-4 text-sm font-semibold text-slate-900">{vi.alertRules.createRule}</h4>
+          <h4 className="mb-4 text-sm font-semibold text-slate-900">
+            {vi.alertRules.createRule}
+          </h4>
           <AlertForm
             metricOptions={metricOptions}
             onSubmit={async (payload) => {
-              setSaving(true)
+              setSaving(true);
               try {
-                await api.post('/alert-rules/', {
+                await api.post("/alert-rules/", {
                   device_id: Number(deviceId),
                   metric_name: payload.metric_name,
                   condition: payload.condition,
                   threshold: payload.threshold,
                   message: payload.message,
-                })
-                onRefresh?.()
+                });
+                onRefresh?.();
               } catch (err) {
-                alert(getErrorMessage(err))
+                alert(getErrorMessage(err));
               } finally {
-                setSaving(false)
+                setSaving(false);
               }
             }}
             submitting={saving}
@@ -139,15 +166,32 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
         </div>
       )}
 
-      {!isOwner && <p className="text-sm text-slate-500">{vi.alertRules.viewerNote}</p>}
+      {!isOwner && (
+        <p className="text-sm text-slate-500">{vi.alertRules.viewerNote}</p>
+      )}
 
-      <Modal open={!!editRule} onClose={() => setEditRule(null)} title={vi.alertRules.modalEdit} size="lg">
+      <Modal
+        open={!!editRule}
+        onClose={() => setEditRule(null)}
+        title={vi.alertRules.modalEdit}
+        size="lg"
+      >
         {editRule && (
           <form onSubmit={saveEdit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">{vi.alertForm.metric}</label>
-              <select name="metric_name" className="input-box" defaultValue={editRule.metric_name} required>
-                {(metricOptions?.length ? metricOptions : [editRule.metric_name]).map((m) => (
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                {vi.alertForm.metric}
+              </label>
+              <select
+                name="metric_name"
+                className="input-box"
+                defaultValue={editRule.metric_name}
+                required
+              >
+                {(metricOptions?.length
+                  ? metricOptions
+                  : [editRule.metric_name]
+                ).map((m) => (
                   <option key={m} value={m}>
                     {m}
                   </option>
@@ -155,8 +199,15 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">{vi.alertForm.condition}</label>
-              <select name="condition" className="input-box" defaultValue={editRule.condition} required>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                {vi.alertForm.condition}
+              </label>
+              <select
+                name="condition"
+                className="input-box"
+                defaultValue={editRule.condition}
+                required
+              >
                 {CONDITIONS.map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.label}
@@ -164,13 +215,34 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
                 ))}
               </select>
             </div>
-            <Input label={vi.alertForm.threshold} name="threshold" type="number" step="any" required defaultValue={editRule.threshold} />
-            <Input label={vi.alertForm.message} name="message" type="text" defaultValue={editRule.message} />
+            <Input
+              label={vi.alertForm.threshold}
+              name="threshold"
+              type="number"
+              step="any"
+              required
+              defaultValue={editRule.threshold}
+            />
+            <Input
+              label={vi.alertForm.message}
+              name="message"
+              type="text"
+              defaultValue={editRule.message}
+            />
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" onClick={() => setEditRule(null)}>
+              <Button
+                className="cursor-pointer"
+                type="button"
+                variant="secondary"
+                onClick={() => setEditRule(null)}
+              >
                 {vi.common.cancel}
               </Button>
-              <Button type="submit" disabled={saving}>
+              <Button
+                className="cursor-pointer"
+                type="submit"
+                disabled={saving}
+              >
                 {saving ? vi.common.saving : vi.common.save}
               </Button>
             </div>
@@ -178,5 +250,5 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
         )}
       </Modal>
     </div>
-  )
+  );
 }

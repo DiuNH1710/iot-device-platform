@@ -1,12 +1,20 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../services/api'
+import { presetToQueryParams } from '../utils/timeRange'
 
 /**
  * @param {string|number|undefined} deviceId
- * @param {{ limit?: number, from_time?: string, to_time?: string }} [opts]
+ * @param {{
+ *   limit?: number,
+ *   timeRangePreset?: import('../utils/timeRange').TimeRangePreset,
+ *   from_time?: string,
+ *   to_time?: string,
+ * }} [opts]
+ * When `timeRangePreset` is set, `from_time` / `to_time` are recomputed on every fetch
+ * (including manual refresh) so the window stays anchored to the current time.
  */
 export function useTelemetry(deviceId, opts = {}) {
-  const { limit = 500, from_time, to_time } = opts
+  const { limit = 500, timeRangePreset, from_time, to_time } = opts
   const [telemetry, setTelemetry] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -17,9 +25,18 @@ export function useTelemetry(deviceId, opts = {}) {
     setError(null)
     try {
       const params = { limit }
-      if (from_time) params.from_time = from_time
-      if (to_time) params.to_time = to_time
-      const { data } = await api.get(`/devices/${deviceId}/telemetry`, { params })
+      if (timeRangePreset != null && timeRangePreset !== '') {
+        const p = presetToQueryParams(timeRangePreset)
+        if (p.from_time) params.from_time = p.from_time
+        if (p.to_time) params.to_time = p.to_time
+      } else {
+        if (from_time) params.from_time = from_time
+        if (to_time) params.to_time = to_time
+      }
+      const { data } = await api.get(`/devices/${deviceId}/telemetry`, {
+        params,
+        headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+      })
       setTelemetry(Array.isArray(data) ? data : [])
     } catch (e) {
       setError(e)
@@ -27,7 +44,7 @@ export function useTelemetry(deviceId, opts = {}) {
     } finally {
       setLoading(false)
     }
-  }, [deviceId, limit, from_time, to_time])
+  }, [deviceId, limit, timeRangePreset, from_time, to_time])
 
   useEffect(() => {
     refresh()
