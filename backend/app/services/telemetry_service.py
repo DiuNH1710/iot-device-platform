@@ -1,10 +1,11 @@
 from app.services import alert_service
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from fastapi import HTTPException
+from datetime import datetime
+from typing import Optional
 
+from app.exceptions import NotFoundError
 from app.models.telemetry import Telemetry
-from app.models.device import Device
 from app.schemas.telemetry_schema import TelemetryCreate
 
 
@@ -24,26 +25,28 @@ def create_telemetry(db: Session, telemetry: TelemetryCreate, device_id: int):
     alert_service.check_alerts(db, new_telemetry)
     return new_telemetry
 
-    db.add(new_telemetry)
-    db.commit()
-    db.refresh(new_telemetry)
 
-    alert_service.check_alerts(db, new_telemetry)
-    return new_telemetry
+def get_device_telemetry(
+    db: Session,
+    device_id: int,
+    limit: int = 100,
+    from_time: Optional[datetime] = None,
+    to_time: Optional[datetime] = None,
+):
 
-#   lấy list telemetry
-def get_device_telemetry(db: Session, device_id: int, limit: int = 100):
+    q = db.query(Telemetry).filter(Telemetry.device_id == device_id)
+    if from_time is not None:
+        q = q.filter(Telemetry.created_at >= from_time)
+    if to_time is not None:
+        q = q.filter(Telemetry.created_at <= to_time)
 
     return (
-        db.query(Telemetry)
-        .filter(Telemetry.device_id == device_id)
-        .order_by(Telemetry.created_at.desc())
+        q.order_by(Telemetry.created_at.desc())
         .limit(limit)
         .all()
     )
 
 
-#  lấy latest telemetry
 def get_latest_telemetry(db: Session, device_id: int):
 
     telemetry = (
@@ -54,10 +57,9 @@ def get_latest_telemetry(db: Session, device_id: int):
     )
 
     if not telemetry:
-        raise HTTPException(status_code=404, detail="No telemetry found")
+        raise NotFoundError("No telemetry found")
 
     return telemetry
-
 
 
 def get_telemetry_stats(db: Session, device_id: int):

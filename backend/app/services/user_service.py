@@ -1,3 +1,4 @@
+from app.exceptions import ConflictError, UnauthorizedError
 from app.models.user import User
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -6,6 +7,7 @@ pwd_context = CryptContext(
     schemes=["pbkdf2_sha256"],
     deprecated="auto"
 )
+
 
 def hash_password(password: str):
     return pwd_context.hash(password)
@@ -26,7 +28,20 @@ def authenticate_user(db: Session, username: str, password: str):
     return user
 
 
+def authenticate_user_or_raise(db: Session, username: str, password: str):
+    user = authenticate_user(db, username, password)
+    if not user:
+        raise UnauthorizedError("Invalid credentials")
+    return user
+
+
 def create_user(db: Session, data):
+
+    if db.query(User).filter(User.username == data.username).first():
+        raise ConflictError("Username already registered")
+
+    if db.query(User).filter(User.email == data.email).first():
+        raise ConflictError("Email already registered")
 
     hashed_password = hash_password(data.password)
 

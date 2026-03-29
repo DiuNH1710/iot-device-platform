@@ -1,11 +1,12 @@
-from fastapi import Depends, HTTPException, Header
+from fastapi import Depends, Header
 from sqlalchemy.orm import Session
 from app.database.db import get_db
 from app.models.device import Device
+from app.exceptions import ForbiddenError
 
 
 def verify_device(
-    x_device_token: str = Header(...), 
+    x_device_token: str = Header(...),
     db: Session = Depends(get_db)
 ):
     device = db.query(Device).filter(
@@ -13,6 +14,6 @@ def verify_device(
     ).first()
 
     if not device:
-        raise HTTPException(status_code=403, detail="Invalid device token")
+        raise ForbiddenError("Invalid device token")
 
     return device

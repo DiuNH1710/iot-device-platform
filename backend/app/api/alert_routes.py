@@ -2,7 +2,7 @@
 from app.database.db import get_db
 from app.dependencies.auth import get_current_user
 from app.dependencies.permission import device_permission
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -19,11 +19,7 @@ def create_rule(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    device = device_service.get_device_by_id(db, rule.device_id)
-    if not device:
-        raise HTTPException(status_code=404, detail="Device not found")
-    if device.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Forbidden")
+    device_service.assert_device_owner(db, rule.device_id, current_user.id)
     return alert_service.create_alert_rule(db, rule)
 
 
@@ -34,6 +30,7 @@ def get_rules(
     _: bool = Depends(device_permission("viewer"))
 ):
     return alert_service.get_rules_by_device(db, device_id)
+
 
 @router.get("/device/{device_id}", response_model=List[AlertHistoryResponse])
 def get_alert_history(
