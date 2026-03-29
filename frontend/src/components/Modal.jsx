@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { IoClose } from 'react-icons/io5'
+import { vi } from '../constants/i18n'
 
 export function Modal({ open, onClose, title, children, size = 'md' }) {
   useEffect(() => {
@@ -19,7 +20,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
       <button
         type="button"
         className="absolute inset-0 bg-slate-900/50"
-        aria-label="Close"
+        aria-label={vi.common.close}
         onClick={onClose}
       />
       <div
@@ -32,6 +33,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
             type="button"
             onClick={onClose}
             className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+            aria-label={vi.common.close}
           >
             <IoClose className="h-5 w-5" />
           </button>

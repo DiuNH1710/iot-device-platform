@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { Card } from '../components/Card'
 import { DashboardDeviceSummaryCard } from '../components/DashboardDeviceSummaryCard'
 import api from '../services/api'
+import { vi } from '../constants/i18n'
 
 export function DashboardPage() {
   const { devices, loading, error } = useDevices()
@@ -51,8 +52,8 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-        <p className="mt-1 text-slate-600">Overview of your connected devices and recent activity.</p>
+        <h1 className="text-2xl font-bold text-slate-900">{vi.dashboard.title}</h1>
+        <p className="mt-1 text-slate-600">{vi.dashboard.subtitle}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -62,8 +63,8 @@ export function DashboardPage() {
               <IoHardwareChipOutline className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Devices</p>
-              <p className="text-2xl font-semibold text-slate-900">{loading ? '—' : devices.length}</p>
+              <p className="text-sm text-slate-500">{vi.dashboard.statDevices}</p>
+              <p className="text-2xl font-semibold text-slate-900">{loading ? vi.common.dash : devices.length}</p>
             </div>
           </div>
         </Card>
@@ -73,9 +74,9 @@ export function DashboardPage() {
               <IoNotificationsOutline className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Alert rows (loaded)</p>
+              <p className="text-sm text-slate-500">{vi.dashboard.statAlertRows}</p>
               <p className="text-2xl font-semibold text-slate-900">
-                {loading ? '—' : devices.length ? totalAlerts : 0}
+                {loading ? vi.common.dash : devices.length ? totalAlerts : 0}
               </p>
             </div>
           </div>
@@ -83,26 +84,24 @@ export function DashboardPage() {
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-          Failed to load devices. Check API and authentication.
-        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{vi.dashboard.loadError}</div>
       )}
 
       {loading ? (
-        <p className="text-slate-500">Loading devices…</p>
+        <p className="text-slate-500">{vi.dashboard.loadingDevices}</p>
       ) : (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Your devices</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{vi.dashboard.sectionDevices}</h2>
             <Link to="/devices" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
-              Manage devices →
+              {vi.dashboard.manageDevices}
             </Link>
           </div>
           {devices.length === 0 ? (
             <Card>
-              <p className="text-slate-600">No devices yet.</p>
+              <p className="text-slate-600">{vi.dashboard.empty}</p>
               <Link to="/devices" className="mt-2 inline-block text-sm font-medium text-indigo-600">
-                Add a device
+                {vi.dashboard.addDevice}
               </Link>
             </Card>
           ) : (

@@ -1,6 +1,7 @@
 import { useOutletContext } from 'react-router-dom'
 import { useAlertHistory } from '../hooks/useAlertHistory'
 import { Card } from '../components/Card'
+import { vi } from '../constants/i18n'
 
 function severityClass(message) {
   const m = (message || '').toLowerCase()
@@ -14,26 +15,24 @@ export function DeviceAlertHistoryPage() {
   const { items, loading, error } = useAlertHistory(deviceId, 200)
 
   return (
-    <Card title="Alert history">
-      <p className="mb-4 text-sm text-slate-600">Recent triggered alerts for this device (newest first).</p>
+    <Card title={vi.deviceAlertHistory.title}>
+      <p className="mb-4 text-sm text-slate-600">{vi.deviceAlertHistory.intro}</p>
 
-      {error && (
-        <p className="mb-4 text-sm text-red-600">Failed to load history. Ensure you have access to this device.</p>
-      )}
+      {error && <p className="mb-4 text-sm text-red-600">{vi.deviceAlertHistory.loadError}</p>}
 
       {loading ? (
-        <p className="text-slate-500">Loading…</p>
+        <p className="text-slate-500">{vi.common.loading}</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-slate-500">No alert history yet.</p>
+        <p className="text-sm text-slate-500">{vi.deviceAlertHistory.empty}</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-slate-200">
           <table className="min-w-full divide-y divide-slate-200 text-sm">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-3 py-2 text-left font-medium text-slate-700">Severity</th>
-                <th className="px-3 py-2 text-left font-medium text-slate-700">Message</th>
-                <th className="px-3 py-2 text-left font-medium text-slate-700">Sent to</th>
-                <th className="px-3 py-2 text-left font-medium text-slate-700">Sent at</th>
+                <th className="px-3 py-2 text-left font-medium text-slate-700">{vi.common.severity}</th>
+                <th className="px-3 py-2 text-left font-medium text-slate-700">{vi.common.message}</th>
+                <th className="px-3 py-2 text-left font-medium text-slate-700">{vi.common.sentTo}</th>
+                <th className="px-3 py-2 text-left font-medium text-slate-700">{vi.common.sentAt}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -41,7 +40,7 @@ export function DeviceAlertHistoryPage() {
                 <tr key={row.id}>
                   <td className="whitespace-nowrap px-3 py-2">
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${severityClass(row.message)}`}>
-                      info
+                      {vi.deviceAlertHistory.badgeInfo}
                     </span>
                   </td>
                   <td className="max-w-md px-3 py-2 text-slate-800">{row.message}</td>

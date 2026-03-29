@@ -7,12 +7,13 @@ import { Button } from '../components/Button'
 import { Input } from '../components/Input'
 import { Modal } from '../components/Modal'
 import { Card } from '../components/Card'
+import { vi } from '../constants/i18n'
 
 function getErrorMessage(err) {
   const d = err.response?.data
   if (typeof d?.detail === 'string') return d.detail
   if (Array.isArray(d?.detail)) return d.detail.map((x) => x.msg || x).join(', ')
-  return err.message || 'Request failed'
+  return err.message || vi.errors.requestFailed
 }
 
 export function DeviceListPage() {
@@ -51,25 +52,23 @@ export function DeviceListPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Devices</h1>
-          <p className="mt-1 text-slate-600">Register and manage your IoT devices.</p>
+          <h1 className="text-2xl font-bold text-slate-900">{vi.deviceList.title}</h1>
+          <p className="mt-1 text-slate-600">{vi.deviceList.subtitle}</p>
         </div>
         <Button type="button" onClick={() => setModalOpen(true)}>
-          Add device
+          {vi.deviceList.addDevice}
         </Button>
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-          {getErrorMessage(error)}
-        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{getErrorMessage(error)}</div>
       )}
 
       {loading ? (
-        <p className="text-slate-500">Loading…</p>
+        <p className="text-slate-500">{vi.deviceList.loading}</p>
       ) : devices.length === 0 ? (
         <Card>
-          <p className="text-slate-600">No devices yet. Create one to get started.</p>
+          <p className="text-slate-600">{vi.deviceList.empty}</p>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -79,12 +78,12 @@ export function DeviceListPage() {
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={() => !submitting && setModalOpen(false)} title="Add device" size="lg">
+      <Modal open={modalOpen} onClose={() => !submitting && setModalOpen(false)} title={vi.deviceList.modalTitle} size="lg">
         <form onSubmit={handleCreate} className="space-y-4">
-          <Input label="IMEI" required value={imei} onChange={(e) => setImei(e.target.value)} placeholder="Unique device IMEI" />
-          <Input label="Name" required value={name} onChange={(e) => setName(e.target.value)} />
+          <Input label={vi.deviceList.imei} required value={imei} onChange={(e) => setImei(e.target.value)} placeholder={vi.deviceList.imeiPlaceholder} />
+          <Input label={vi.deviceList.name} required value={name} onChange={(e) => setName(e.target.value)} />
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Description (optional)</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{vi.deviceList.descriptionOptional}</label>
             <textarea
               className="input-box min-h-[80px]"
               value={description}
@@ -94,10 +93,10 @@ export function DeviceListPage() {
           {submitError && <p className="text-sm text-red-600">{submitError}</p>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setModalOpen(false)} disabled={submitting}>
-              Cancel
+              {vi.common.cancel}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? 'Creating…' : 'Create'}
+              {submitting ? vi.common.creating : vi.deviceList.create}
             </Button>
           </div>
         </form>

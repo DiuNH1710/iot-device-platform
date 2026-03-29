@@ -12,12 +12,13 @@ import { TelemetryMultiChart } from '../components/TelemetryMultiChart'
 import { TelemetryTable } from '../components/TelemetryTable'
 import { AlertRulesPanel } from '../components/AlertRulesPanel'
 import api from '../services/api'
+import { vi } from '../constants/i18n'
 
 function getErrorMessage(err) {
   const d = err.response?.data
   if (typeof d?.detail === 'string') return d.detail
   if (Array.isArray(d?.detail)) return d.detail.map((x) => x.msg || x).join(', ')
-  return err.message || 'Request failed'
+  return err.message || vi.deviceOverview.errorFallback
 }
 
 export function DeviceOverviewPage() {
@@ -66,7 +67,7 @@ export function DeviceOverviewPage() {
   }
 
   const handleDeleteDevice = async () => {
-    if (!window.confirm('Delete this device? This cannot be undone.')) return
+    if (!window.confirm(vi.deviceOverview.deleteConfirm)) return
     setDeleteLoading(true)
     try {
       await api.delete(`/devices/${deviceId}`)
@@ -83,47 +84,47 @@ export function DeviceOverviewPage() {
       <div className="flex flex-wrap items-center justify-end gap-2">
         {isOwner && (
           <Button type="button" variant="danger" onClick={handleDeleteDevice} disabled={deleteLoading}>
-            {deleteLoading ? 'Deleting…' : 'Delete device'}
+            {deleteLoading ? vi.common.deleting : vi.deviceOverview.deleteDevice}
           </Button>
         )}
       </div>
 
-      <Card title="Telemetry">
+      <Card title={vi.deviceOverview.telemetry}>
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Time range</label>
+            <label className="mb-1 block text-xs font-medium text-slate-600">{vi.deviceOverview.timeRange}</label>
             <select
               className="input-box max-w-xs"
               value={rangePreset}
               onChange={(e) => setRangePreset(e.target.value)}
             >
-              <option value="1h">Last 1 hour</option>
-              <option value="24h">Last 24 hours</option>
-              <option value="7d">Last 7 days</option>
-              <option value="all">All (limit applies)</option>
+              <option value="1h">{vi.deviceOverview.range1h}</option>
+              <option value="24h">{vi.deviceOverview.range24h}</option>
+              <option value="7d">{vi.deviceOverview.range7d}</option>
+              <option value="all">{vi.deviceOverview.rangeAll}</option>
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">View</label>
+            <label className="mb-1 block text-xs font-medium text-slate-600">{vi.common.view}</label>
             <div className="flex rounded-lg border border-slate-200 p-0.5">
               <button
                 type="button"
                 className={`rounded-md px-3 py-1.5 text-sm ${viewMode === 'chart' ? 'bg-indigo-100 text-indigo-900' : 'text-slate-600'}`}
                 onClick={() => setViewMode('chart')}
               >
-                Chart
+                {vi.common.chart}
               </button>
               <button
                 type="button"
                 className={`rounded-md px-3 py-1.5 text-sm ${viewMode === 'table' ? 'bg-indigo-100 text-indigo-900' : 'text-slate-600'}`}
                 onClick={() => setViewMode('table')}
               >
-                Table
+                {vi.common.table}
               </button>
             </div>
           </div>
           <Button type="button" variant="secondary" onClick={() => refreshTelemetry()}>
-            Refresh
+            {vi.common.refresh}
           </Button>
         </div>
 
@@ -131,7 +132,7 @@ export function DeviceOverviewPage() {
 
         {metrics.length > 0 && (
           <div className="mb-4">
-            <p className="mb-2 text-sm font-medium text-slate-700">Metrics to plot</p>
+            <p className="mb-2 text-sm font-medium text-slate-700">{vi.deviceOverview.metricsToPlot}</p>
             <div className="flex flex-wrap gap-3">
               {metrics.map((m) => (
                 <label key={m} className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
@@ -145,7 +146,7 @@ export function DeviceOverviewPage() {
                 </label>
               ))}
             </div>
-            <p className="mt-2 text-xs text-slate-500">Select one or more metrics. Single selection uses a compact chart.</p>
+            <p className="mt-2 text-xs text-slate-500">{vi.deviceOverview.metricsHint}</p>
           </div>
         )}
 
@@ -162,39 +163,39 @@ export function DeviceOverviewPage() {
         )}
       </Card>
 
-      <Card title="Statistics">
+      <Card title={vi.deviceOverview.statistics}>
         <div className="mb-4">
-          <MetricSelector metrics={metrics} value={statsMetric} onChange={setStatsMetric} label="Metric for stats" />
+          <MetricSelector metrics={metrics} value={statsMetric} onChange={setStatsMetric} label={vi.deviceOverview.metricForStats} />
         </div>
         {!statsMetric ? (
-          <p className="text-sm text-slate-500">Select a metric.</p>
+          <p className="text-sm text-slate-500">{vi.deviceOverview.selectMetric}</p>
         ) : statsLoading ? (
-          <p className="text-slate-500">Loading stats…</p>
+          <p className="text-slate-500">{vi.deviceOverview.loadingStats}</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-lg bg-slate-50 p-4">
-              <p className="text-xs font-medium uppercase text-slate-500">Average</p>
+              <p className="text-xs font-medium uppercase text-slate-500">{vi.common.average}</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">
-                {stats?.avg != null ? Number(stats.avg).toFixed(4) : '—'}
+                {stats?.avg != null ? Number(stats.avg).toFixed(4) : vi.common.dash}
               </p>
             </div>
             <div className="rounded-lg bg-slate-50 p-4">
-              <p className="text-xs font-medium uppercase text-slate-500">Max</p>
+              <p className="text-xs font-medium uppercase text-slate-500">{vi.common.max}</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">
-                {stats?.max != null ? Number(stats.max).toFixed(4) : '—'}
+                {stats?.max != null ? Number(stats.max).toFixed(4) : vi.common.dash}
               </p>
             </div>
             <div className="rounded-lg bg-slate-50 p-4">
-              <p className="text-xs font-medium uppercase text-slate-500">Min</p>
+              <p className="text-xs font-medium uppercase text-slate-500">{vi.common.min}</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">
-                {stats?.min != null ? Number(stats.min).toFixed(4) : '—'}
+                {stats?.min != null ? Number(stats.min).toFixed(4) : vi.common.dash}
               </p>
             </div>
           </div>
         )}
       </Card>
 
-      <Card title="Alert rules">
+      <Card title={vi.deviceOverview.alertRules}>
         <AlertRulesPanel
           isOwner={isOwner}
           deviceId={deviceId}

@@ -5,12 +5,13 @@ import api from '../services/api'
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
 import { Card } from '../components/Card'
+import { vi } from '../constants/i18n'
 
 function getErrorMessage(err) {
   const d = err.response?.data
   if (typeof d?.detail === 'string') return d.detail
   if (Array.isArray(d?.detail)) return d.detail.map((x) => x.msg || x).join(', ')
-  return err.message || 'Registration failed'
+  return err.message || vi.errors.registerFailed
 }
 
 export function RegisterPage() {
@@ -42,12 +43,12 @@ export function RegisterPage() {
 
   return (
     <Card>
-      <h2 className="mb-6 text-center text-xl font-semibold text-slate-900">Create account</h2>
+      <h2 className="mb-6 text-center text-xl font-semibold text-slate-900">{vi.register.title}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Username" name="username" required value={username} onChange={(e) => setUsername(e.target.value)} />
-        <Input label="Email" name="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input label={vi.login.username} name="username" required value={username} onChange={(e) => setUsername(e.target.value)} />
+        <Input label={vi.register.email} name="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input
-          label="Password"
+          label={vi.login.password}
           name="password"
           type="password"
           required
@@ -56,13 +57,13 @@ export function RegisterPage() {
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Creating…' : 'Register'}
+          {loading ? vi.common.creating : vi.register.submit}
         </Button>
       </form>
       <p className="mt-4 text-center text-sm text-slate-600">
-        Already have an account?{' '}
+        {vi.register.hasAccount}{' '}
         <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-800">
-          Sign in
+          {vi.register.signInLink}
         </Link>
       </p>
     </Card>

@@ -4,20 +4,21 @@ import { Button } from './Button'
 import { Input } from './Input'
 import { Modal } from './Modal'
 import { AlertForm } from './AlertForm'
+import { vi } from '../constants/i18n'
 
 function getErrorMessage(err) {
   const d = err.response?.data
   if (typeof d?.detail === 'string') return d.detail
   if (Array.isArray(d?.detail)) return d.detail.map((x) => x.msg || x).join(', ')
-  return err.message || 'Request failed'
+  return err.message || vi.errors.requestFailed
 }
 
 const CONDITIONS = [
-  { value: '>', label: '> (greater)' },
-  { value: '<', label: '< (less)' },
-  { value: '>=', label: '>= (greater or equal)' },
-  { value: '<=', label: '<= (less or equal)' },
-  { value: '==', label: '= (equal)' },
+  { value: '>', label: vi.alertRules.condGreater },
+  { value: '<', label: vi.alertRules.condLess },
+  { value: '>=', label: vi.alertRules.condGte },
+  { value: '<=', label: vi.alertRules.condLte },
+  { value: '==', label: vi.alertRules.condEq },
 ]
 
 /**
@@ -71,9 +72,9 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
   return (
     <div>
       {loading ? (
-        <p className="text-slate-500">Loading rules…</p>
+        <p className="text-slate-500">{vi.alertRules.loading}</p>
       ) : rules.length === 0 ? (
-        <p className="mb-4 text-sm text-slate-500">No alert rules for this device.</p>
+        <p className="mb-4 text-sm text-slate-500">{vi.alertRules.empty}</p>
       ) : (
         <ul className="mb-6 space-y-2">
           {rules.map((r) => (
@@ -93,15 +94,15 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
                     r.enabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
                   }`}
                 >
-                  {r.enabled ? 'Enabled' : 'Disabled'}
+                  {r.enabled ? vi.common.enabled : vi.common.disabled}
                 </span>
                 {isOwner && (
                   <>
                     <Button type="button" variant="secondary" disabled={saving} onClick={() => toggleEnabled(r)}>
-                      {r.enabled ? 'Disable' : 'Enable'}
+                      {r.enabled ? vi.alertRules.disable : vi.alertRules.enable}
                     </Button>
                     <Button type="button" variant="secondary" disabled={saving} onClick={() => setEditRule(r)}>
-                      Edit
+                      {vi.common.edit}
                     </Button>
                   </>
                 )}
@@ -113,7 +114,7 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
 
       {isOwner && (
         <div className="border-t border-slate-100 pt-6">
-          <h4 className="mb-4 text-sm font-semibold text-slate-900">Create rule</h4>
+          <h4 className="mb-4 text-sm font-semibold text-slate-900">{vi.alertRules.createRule}</h4>
           <AlertForm
             metricOptions={metricOptions}
             onSubmit={async (payload) => {
@@ -138,13 +139,13 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
         </div>
       )}
 
-      {!isOwner && <p className="text-sm text-slate-500">Viewers can see rules but cannot change them.</p>}
+      {!isOwner && <p className="text-sm text-slate-500">{vi.alertRules.viewerNote}</p>}
 
-      <Modal open={!!editRule} onClose={() => setEditRule(null)} title="Edit alert rule" size="lg">
+      <Modal open={!!editRule} onClose={() => setEditRule(null)} title={vi.alertRules.modalEdit} size="lg">
         {editRule && (
           <form onSubmit={saveEdit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Metric</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">{vi.alertForm.metric}</label>
               <select name="metric_name" className="input-box" defaultValue={editRule.metric_name} required>
                 {(metricOptions?.length ? metricOptions : [editRule.metric_name]).map((m) => (
                   <option key={m} value={m}>
@@ -154,7 +155,7 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Condition</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">{vi.alertForm.condition}</label>
               <select name="condition" className="input-box" defaultValue={editRule.condition} required>
                 {CONDITIONS.map((c) => (
                   <option key={c.value} value={c.value}>
@@ -163,14 +164,14 @@ export function AlertRulesPanel({ isOwner, deviceId, metricOptions, rules, loadi
                 ))}
               </select>
             </div>
-            <Input label="Threshold" name="threshold" type="number" step="any" required defaultValue={editRule.threshold} />
-            <Input label="Message" name="message" type="text" defaultValue={editRule.message} />
+            <Input label={vi.alertForm.threshold} name="threshold" type="number" step="any" required defaultValue={editRule.threshold} />
+            <Input label={vi.alertForm.message} name="message" type="text" defaultValue={editRule.message} />
             <div className="flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => setEditRule(null)}>
-                Cancel
+                {vi.common.cancel}
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? 'Saving…' : 'Save'}
+                {saving ? vi.common.saving : vi.common.save}
               </Button>
             </div>
           </form>

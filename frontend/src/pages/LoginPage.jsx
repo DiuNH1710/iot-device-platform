@@ -5,12 +5,13 @@ import { useAuth } from '../context/AuthContext'
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
 import { Card } from '../components/Card'
+import { vi } from '../constants/i18n'
 
 function getErrorMessage(err) {
   const d = err.response?.data
   if (typeof d?.detail === 'string') return d.detail
   if (Array.isArray(d?.detail)) return d.detail.map((x) => x.msg || x).join(', ')
-  return err.message || 'Login failed'
+  return err.message || vi.errors.loginFailed
 }
 
 export function LoginPage() {
@@ -45,11 +46,11 @@ export function LoginPage() {
 
   return (
     <Card>
-      <h2 className="mb-6 text-center text-xl font-semibold text-slate-900">Sign in</h2>
+      <h2 className="mb-6 text-center text-xl font-semibold text-slate-900">{vi.login.title}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Username" name="username" autoComplete="username" required value={username} onChange={(e) => setUsername(e.target.value)} />
+        <Input label={vi.login.username} name="username" autoComplete="username" required value={username} onChange={(e) => setUsername(e.target.value)} />
         <Input
-          label="Password"
+          label={vi.login.password}
           name="password"
           type="password"
           autoComplete="current-password"
@@ -59,13 +60,13 @@ export function LoginPage() {
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Signing in…' : 'Sign in'}
+          {loading ? vi.common.signingIn : vi.login.submit}
         </Button>
       </form>
       <p className="mt-4 text-center text-sm text-slate-600">
-        No account?{' '}
+        {vi.login.noAccount}{' '}
         <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-800">
-          Register
+          {vi.login.registerLink}
         </Link>
       </p>
     </Card>

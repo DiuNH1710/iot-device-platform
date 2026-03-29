@@ -6,11 +6,12 @@ import { Card } from '../components/Card'
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
 import { Modal } from '../components/Modal'
+import { vi } from '../constants/i18n'
 
 function getErrorMessage(err) {
   const d = err.response?.data
   if (typeof d?.detail === 'string') return d.detail
-  return err.message || 'Request failed'
+  return err.message || vi.errors.requestFailed
 }
 
 export function DeviceAttributesPage() {
@@ -59,7 +60,7 @@ export function DeviceAttributesPage() {
   }
 
   const handleDelete = async (attr) => {
-    if (!window.confirm(`Delete attribute "${attr.attribute_name}"?`)) return
+    if (!window.confirm(vi.deviceAttributes.deleteConfirm(attr.attribute_name))) return
     setSubmitting(true)
     try {
       await api.delete(`/devices/${deviceId}/attributes/${attr.id}`)
@@ -74,32 +75,30 @@ export function DeviceAttributesPage() {
   return (
     <div className="space-y-6">
       <Card
-        title="Device attributes"
+        title={vi.deviceAttributes.title}
         actions={
           isOwner ? (
             <Button type="button" onClick={openCreate}>
-              Add attribute
+              {vi.deviceAttributes.add}
             </Button>
           ) : null
         }
       >
-        <p className="mb-4 text-sm text-slate-600">
-          Key–value metadata stored for this device. Creating the same name again updates the value.
-        </p>
+        <p className="mb-4 text-sm text-slate-600">{vi.deviceAttributes.intro}</p>
 
         {error && <p className="mb-4 text-sm text-red-600">{getErrorMessage(error)}</p>}
         {loading ? (
-          <p className="text-slate-500">Loading…</p>
+          <p className="text-slate-500">{vi.deviceAttributes.loading}</p>
         ) : attributes.length === 0 ? (
-          <p className="text-sm text-slate-500">No attributes yet.</p>
+          <p className="text-sm text-slate-500">{vi.deviceAttributes.empty}</p>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-slate-200">
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium text-slate-700">Name</th>
-                  <th className="px-3 py-2 text-left font-medium text-slate-700">Value</th>
-                  {isOwner && <th className="px-3 py-2 text-right font-medium text-slate-700">Actions</th>}
+                  <th className="px-3 py-2 text-left font-medium text-slate-700">{vi.deviceAttributes.colName}</th>
+                  <th className="px-3 py-2 text-left font-medium text-slate-700">{vi.deviceAttributes.colValue}</th>
+                  {isOwner && <th className="px-3 py-2 text-right font-medium text-slate-700">{vi.common.actions}</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -112,7 +111,7 @@ export function DeviceAttributesPage() {
                     {isOwner && (
                       <td className="whitespace-nowrap px-3 py-2 text-right">
                         <Button type="button" variant="secondary" className="!py-1 !text-xs" onClick={() => openEdit(a)}>
-                          Edit
+                          {vi.common.edit}
                         </Button>
                         <Button
                           type="button"
@@ -121,7 +120,7 @@ export function DeviceAttributesPage() {
                           onClick={() => handleDelete(a)}
                           disabled={submitting}
                         >
-                          Delete
+                          {vi.common.delete}
                         </Button>
                       </td>
                     )}
@@ -132,29 +131,29 @@ export function DeviceAttributesPage() {
           </div>
         )}
 
-        {!isOwner && <p className="mt-4 text-sm text-slate-500">You have read-only access.</p>}
+        {!isOwner && <p className="mt-4 text-sm text-slate-500">{vi.deviceAttributes.readOnly}</p>}
       </Card>
 
-      <Modal open={modalOpen} onClose={() => !submitting && setModalOpen(false)} title={editAttr ? 'Edit attribute' : 'Add attribute'}>
+      <Modal open={modalOpen} onClose={() => !submitting && setModalOpen(false)} title={editAttr ? vi.deviceAttributes.modalEdit : vi.deviceAttributes.modalAdd}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Name"
+            label={vi.common.name}
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={!!editAttr}
           />
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Value</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{vi.common.value}</label>
             <textarea className="input-box min-h-[100px]" value={value} onChange={(e) => setValue(e.target.value)} required />
           </div>
           {formError && <p className="text-sm text-red-600">{formError}</p>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setModalOpen(false)} disabled={submitting}>
-              Cancel
+              {vi.common.cancel}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? 'Saving…' : 'Save'}
+              {submitting ? vi.common.saving : vi.common.save}
             </Button>
           </div>
         </form>

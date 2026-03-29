@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { vi } from '../constants/i18n'
 
 const linkClass = ({ isActive }) =>
   `rounded-lg px-3 py-2 text-sm font-medium ${
@@ -11,16 +12,16 @@ export function DeviceSubNav({ deviceId }) {
   return (
     <nav className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
       <NavLink to={base} end className={linkClass}>
-        Overview
+        {vi.deviceSubNav.overview}
       </NavLink>
       <NavLink to={`${base}/attributes`} className={linkClass}>
-        Attributes
+        {vi.deviceSubNav.attributes}
       </NavLink>
       <NavLink to={`${base}/alerts/history`} className={linkClass}>
-        Alert history
+        {vi.deviceSubNav.alertHistory}
       </NavLink>
       <NavLink to={`${base}/viewers`} className={linkClass}>
-        Viewers
+        {vi.deviceSubNav.viewers}
       </NavLink>
     </nav>
   )

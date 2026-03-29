@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { getNumericValueFromData } from '../utils/telemetry'
+import { vi } from '../constants/i18n'
 
 const COLORS = ['#4f46e5', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0ea5e9']
 
@@ -28,13 +29,13 @@ function formatTime(iso) {
  */
 export function TelemetryMultiChart({ telemetry, metricKeys, loading }) {
   if (loading) {
-    return <div className="flex h-72 items-center justify-center text-slate-500">Loading chart…</div>
+    return <div className="flex h-72 items-center justify-center text-slate-500">{vi.telemetry.loadingChart}</div>
   }
 
   if (!telemetry?.length || !metricKeys?.length) {
     return (
       <div className="flex h-72 items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 text-slate-500">
-        Select at least one metric with data.
+        {vi.telemetry.selectOneWithData}
       </div>
     )
   }
@@ -54,9 +55,7 @@ export function TelemetryMultiChart({ telemetry, metricKeys, loading }) {
 
   if (!chartData.length) {
     return (
-      <div className="flex h-72 items-center justify-center text-amber-800">
-        No numeric values for selected metrics in this range.
-      </div>
+      <div className="flex h-72 items-center justify-center text-amber-800">{vi.telemetry.noNumericMulti}</div>
     )
   }
 

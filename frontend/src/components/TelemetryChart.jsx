@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { getNumericValueFromData } from '../utils/telemetry'
+import { vi } from '../constants/i18n'
 
 function formatTime(iso) {
   if (!iso) return ''
@@ -25,20 +26,20 @@ function formatTime(iso) {
  */
 export function TelemetryChart({ telemetry, metricKey, loading }) {
   if (loading) {
-    return <div className="flex h-72 items-center justify-center text-slate-500">Loading chart…</div>
+    return <div className="flex h-72 items-center justify-center text-slate-500">{vi.telemetry.loadingChart}</div>
   }
 
   if (!telemetry?.length) {
     return (
       <div className="flex h-72 items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 text-slate-500">
-        No telemetry rows yet.
+        {vi.telemetry.noRows}
       </div>
     )
   }
 
   if (!metricKey) {
     return (
-      <div className="flex h-72 items-center justify-center text-slate-500">Select a metric to plot.</div>
+      <div className="flex h-72 items-center justify-center text-slate-500">{vi.telemetry.selectMetric}</div>
     )
   }
 
@@ -56,7 +57,7 @@ export function TelemetryChart({ telemetry, metricKey, loading }) {
   if (!chartData.length) {
     return (
       <div className="flex h-72 items-center justify-center rounded-lg border border-dashed border-amber-200 bg-amber-50 text-amber-800">
-        No numeric values for “{metricKey}” in this range.
+        {vi.telemetry.noNumericForMetric(metricKey)}
       </div>
     )
   }

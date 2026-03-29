@@ -6,11 +6,12 @@ import { useViewers } from '../hooks/useViewers'
 import { useUsers } from '../hooks/useUsers'
 import { Card } from '../components/Card'
 import { Button } from '../components/Button'
+import { vi } from '../constants/i18n'
 
 function getErrorMessage(err) {
   const d = err.response?.data
   if (typeof d?.detail === 'string') return d.detail
-  return err.message || 'Request failed'
+  return err.message || vi.errors.requestFailed
 }
 
 export function DeviceViewersPage() {
@@ -50,7 +51,7 @@ export function DeviceViewersPage() {
   }
 
   const removeViewer = async (viewerUserId) => {
-    if (!window.confirm('Remove this viewer?')) return
+    if (!window.confirm(vi.deviceViewers.removeConfirm)) return
     setSubmitting(true)
     try {
       await api.delete(`/devices/${deviceId}/viewers/${viewerUserId}`)
@@ -63,17 +64,15 @@ export function DeviceViewersPage() {
   }
 
   return (
-    <Card title="Shared access">
-      <p className="mb-4 text-sm text-slate-600">
-        Viewers can read telemetry, attributes, and alerts but cannot change device settings or rules.
-      </p>
+    <Card title={vi.deviceViewers.title}>
+      <p className="mb-4 text-sm text-slate-600">{vi.deviceViewers.intro}</p>
 
       {error && <p className="mb-4 text-sm text-red-600">{getErrorMessage(error)}</p>}
 
       {loading ? (
-        <p className="text-slate-500">Loading viewers…</p>
+        <p className="text-slate-500">{vi.deviceViewers.loading}</p>
       ) : viewers.length === 0 ? (
-        <p className="mb-6 text-sm text-slate-500">No viewers yet.</p>
+        <p className="mb-6 text-sm text-slate-500">{vi.deviceViewers.empty}</p>
       ) : (
         <ul className="mb-6 space-y-2">
           {viewers.map((v) => (
@@ -83,7 +82,7 @@ export function DeviceViewersPage() {
             >
               <div>
                 <span className="font-medium text-slate-900">{v.username}</span>
-                <span className="ml-2 text-slate-500">user #{v.user_id}</span>
+                <span className="ml-2 text-slate-500">{vi.deviceViewers.userId(v.user_id)}</span>
               </div>
               {isOwner && (
                 <Button
@@ -93,7 +92,7 @@ export function DeviceViewersPage() {
                   disabled={submitting}
                   onClick={() => removeViewer(v.user_id)}
                 >
-                  Remove
+                  {vi.deviceViewers.remove}
                 </Button>
               )}
             </li>
@@ -104,14 +103,14 @@ export function DeviceViewersPage() {
       {isOwner ? (
         <form onSubmit={addViewer} className="flex flex-wrap items-end gap-3 border-t border-slate-100 pt-6">
           <div className="min-w-[200px] flex-1">
-            <label className="mb-1 block text-sm font-medium text-slate-700">Add viewer by user</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{vi.deviceViewers.addLabel}</label>
             <select
               className="input-box"
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.target.value)}
               disabled={usersLoading || !candidateUsers.length}
             >
-              <option value="">Select user…</option>
+              <option value="">{vi.deviceViewers.selectUser}</option>
               {candidateUsers.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.username} (#{u.id})
@@ -120,15 +119,15 @@ export function DeviceViewersPage() {
             </select>
           </div>
           <Button type="submit" disabled={submitting || !selectedUserId}>
-            Add viewer
+            {vi.deviceViewers.addButton}
           </Button>
         </form>
       ) : (
-        <p className="text-sm text-slate-500">Only the device owner can manage viewers.</p>
+        <p className="text-sm text-slate-500">{vi.deviceViewers.ownerOnly}</p>
       )}
 
       {isOwner && !usersLoading && candidateUsers.length === 0 && users.length > 0 && (
-        <p className="mt-2 text-xs text-amber-700">No eligible users to add (all users are already viewers or the owner).</p>
+        <p className="mt-2 text-xs text-amber-700">{vi.deviceViewers.noCandidates}</p>
       )}
     </Card>
   )
