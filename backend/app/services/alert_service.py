@@ -4,14 +4,14 @@ from app.exceptions import DomainValidationError
 from app.models.alert_rule import AlertRule
 from app.models.alert_history import AlertHistory
 from app.schemas.alert_schema import AlertRuleCreate
+from app.utils.telemetry_metrics import get_metric_value
 
-ALLOWED_METRICS = frozenset({"voltage", "temperature", "current"})
-ALLOWED_CONDITIONS = frozenset({">", "<", ">=", "<="})
+ALLOWED_CONDITIONS = frozenset({">", "<", ">=", "<=", "=="})
 
 
 def validate_alert_rule(rule: AlertRuleCreate) -> None:
-    if rule.metric_name not in ALLOWED_METRICS:
-        raise DomainValidationError(f"Invalid metric_name: {rule.metric_name!r}")
+    if not rule.metric_name or not str(rule.metric_name).strip():
+        raise DomainValidationError("metric_name is required")
     if rule.condition not in ALLOWED_CONDITIONS:
         raise DomainValidationError(f"Invalid condition: {rule.condition!r}")
     if math.isnan(rule.threshold) or math.isinf(rule.threshold):
@@ -39,20 +39,30 @@ def check_alerts(db: Session, telemetry):
 
     rules = get_rules_by_device(db, telemetry.device_id)
 
+    ops = {
+        ">": lambda a, b: a > b,
+        "<": lambda a, b: a < b,
+        "==": lambda a, b: a == b,
+        ">=": lambda a, b: a >= b,
+        "<=": lambda a, b: a <= b,
+    }
+
+    data = telemetry.data if isinstance(getattr(telemetry, "data", None), dict) else {}
+
     for rule in rules:
 
-        value = getattr(telemetry, rule.metric_name)
+        value = get_metric_value(data, rule.metric_name)
+        if value is None:
+            continue
 
-        triggered = False
+        op = ops.get(rule.condition)
+        if op is None:
+            continue
 
-        if rule.condition == ">":
-            triggered = value > rule.threshold
-        elif rule.condition == "<":
-            triggered = value < rule.threshold
-        elif rule.condition == ">=":
-            triggered = value >= rule.threshold
-        elif rule.condition == "<=":
-            triggered = value <= rule.threshold
+        try:
+            triggered = op(value, float(rule.threshold))
+        except (TypeError, ValueError):
+            continue
 
         if triggered:
             save_alert(db, telemetry, rule)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, TIMESTAMP, BigInteger
+from sqlalchemy import Column, Integer, ForeignKey, TIMESTAMP, BigInteger, JSON
 from sqlalchemy.sql import func
 from app.database.db import Base
 
@@ -10,10 +10,6 @@ class Telemetry(Base):
 
     device_id = Column(Integer, ForeignKey("devices.id"), index=True)
 
-    voltage = Column(Float)
-
-    temperature = Column(Float)
-
-    current = Column(Float)
+    data = Column(JSON, nullable=False)
 
     created_at = Column(TIMESTAMP, server_default=func.now())

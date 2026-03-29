@@ -1,27 +1,26 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 
 class TelemetryCreate(BaseModel):
-    voltage: float
-    temperature: float
-    current: float
+    data: dict
 
 
 class TelemetryResponse(BaseModel):
     id: int
     device_id: int
-    voltage: float
-    temperature: float
-    current: float
+    data: dict
+    created_at: datetime
 
     class Config:
         from_attributes = True
-        
-        
+
+
 class TelemetryStats(BaseModel):
-    avg_temperature: float | None
-    max_temperature: float | None
-    min_voltage: float | None
+    metric: str
+    avg: float | None
+    max: float | None
+    min: float | None
 
     class Config:
         from_attributes = True

@@ -114,12 +114,13 @@ def get_attributes(
 @router.get("/{device_id}/telemetry/stats", response_model=TelemetryStats)
 def get_stats(
     device_id: int,
+    metric: str,
     db: Session = Depends(get_db),
     _: bool = Depends(device_permission("viewer"))
 ):
     device_service.get_device_or_raise(db, device_id)
 
-    return telemetry_service.get_telemetry_stats(db, device_id)
+    return telemetry_service.get_telemetry_stats(db, device_id, metric=metric)
 
 
 @router.post("/{device_id}/viewers")
