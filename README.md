@@ -34,7 +34,7 @@ POST /telemetry
         v
 FastAPI -> normalize telemetry -> save DB
         |
-        +--> check alert rules -> save alert_history (sent_to="telegram")
+        +--> check alert rules -> gửi Telegram + save alert_history (sent_to="telegram")
         |
         v
 Frontend gọi API /devices, /devices/{id}/telemetry, /alert-rules...
@@ -83,6 +83,9 @@ Dashboard / Device Overview / Alerts
   - Tổng quan số lượng thiết bị, cảnh báo, danh sách nhanh.
 - **Alerts**
   - Tạo luật cảnh báo theo `metric + condition + threshold`.
+  - Gửi cảnh báo Telegram thời gian thực qua bot `hust_telemetry_alert_bot`.
+  - Chống spam: chỉ gửi khi chuyển trạng thái cảnh báo/phục hồi.
+  - Có cơ chế cooldown để nhắc lại khi cảnh báo vẫn kéo dài.
   - Lưu lịch sử alert theo thiết bị.
 
 ## 5) Giải thích cấu trúc thư mục
@@ -163,6 +166,8 @@ Tạo/chỉnh sửa `.env` trong `backend/`:
 
 ```env
 DATABASE_URL=postgresql://<user>:<password>@localhost:5432/<db_name>
+TELEGRAM_BOT_TOKEN=<your_bot_token>
+TELEGRAM_CHAT_ID=<your_chat_id>
 ```
 
 Chạy backend:
@@ -255,33 +260,45 @@ Base URL backend: `http://localhost:8000`
    - Lấy các rule đang bật của thiết bị.
    - Đọc giá trị metric từ payload.
    - So sánh với điều kiện (`>`, `<`, `>=`, `<=`, `==`).
-   - Nếu trigger -> ghi vào `alert_history`.
+   - Gửi tin nhắn khi chuyển trạng thái `NORMAL -> ALERT`, `ALERT -> NORMAL`.
+   - Nếu vẫn `ALERT`, chỉ nhắc lại khi vượt `cooldown_seconds`.
+   - Ghi lịch sử vào `alert_history`.
 
 5. **Frontend cập nhật hiển thị**  
    Frontend gọi API telemetry/stats/alerts để render chart, bảng và lịch sử cảnh báo theo thời gian thực (refresh theo thao tác người dùng).
 
 ## 9) Tích hợp cảnh báo Telegram
 
-Hiện tại hệ thống đang có luồng cảnh báo với trường `sent_to="telegram"` trong `alert_history` để biểu diễn kênh gửi cảnh báo.
+Backend đã tích hợp gửi cảnh báo Telegram thực tế qua bot `hust_telemetry_alert_bot`.
 
-### Cách hoạt động hiện tại
+### Cấu hình
 
-- Khi rule được trigger, backend gọi `save_alert(...)`.
-- Hệ thống ghi một bản ghi vào bảng `alert_history` với:
-  - `device_id`
-  - `rule_id`
-  - `message`
-  - `sent_to = "telegram"`
-  - `sent_at`
-
-### Lưu ý
-
-- Ở phiên bản hiện tại, code backend **chưa gửi HTTP request thực tế** đến Telegram Bot API.
-- Để hoàn chỉnh tích hợp Telegram thật, cần bổ sung:
+- Đọc biến môi trường từ `backend/.env`:
   - `TELEGRAM_BOT_TOKEN`
   - `TELEGRAM_CHAT_ID`
-  - service gửi `POST https://api.telegram.org/bot<token>/sendMessage`
-  - cơ chế retry/log lỗi gửi tin nhắn.
+- Cấu hình được nạp qua `BaseSettings` trong `app/config/settings.py`.
+
+### Cách backend gửi tin nhắn
+
+- Service `app/services/telegram_service.py` gửi `POST` tới Telegram Bot API:
+  - `https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage`
+- Payload:
+  - `chat_id = TELEGRAM_CHAT_ID`
+  - `text = message`
+- Có xử lý lỗi và log khi gửi thất bại.
+
+### Loại tin nhắn
+
+- `ALERT TRIGGERED`: khi cảnh báo vừa được kích hoạt.
+- `ALERT STILL ACTIVE`: khi cảnh báo còn tồn tại và đã vượt thời gian cooldown.
+- `DEVICE RECOVERED`: khi giá trị quay về trạng thái bình thường.
+
+### Cơ chế chống spam
+
+- Chỉ gửi khi có chuyển trạng thái:
+  - `NORMAL -> ALERT`
+  - `ALERT -> NORMAL`
+- Nếu thiết bị vẫn đang `ALERT`, hệ thống không gửi lặp liên tục, chỉ gửi nhắc lại sau mỗi `cooldown_seconds`.
 
 ## 10) Giao diện người dùng
 
@@ -289,7 +306,7 @@ Hiện tại hệ thống đang có luồng cảnh báo với trường `sent_to
 
 Trang tổng quan hệ thống, hiển thị số lượng thiết bị, cảnh báo và danh sách thiết bị nổi bật.
 
-![Dashboard Screenshot](./screenshots/dashboard.png)
+![Dashboard Screenshot](./screenshots/tongquan.PNG)
 
 _Replace with actual screenshot_
 
@@ -297,7 +314,7 @@ _Replace with actual screenshot_
 
 Trang quản lý danh sách thiết bị: xem thông tin, điều hướng sang trang chi tiết thiết bị.
 
-![Devices Screenshot](./screenshots/devices.png)
+![Devices Screenshot](./screenshots/tatcathietbi.PNG)
 
 _Replace with actual screenshot_
 
@@ -305,7 +322,11 @@ _Replace with actual screenshot_
 
 Trang theo dõi chi tiết telemetry của một thiết bị: biểu đồ, bảng dữ liệu, thống kê metric và quản lý alert rules.
 
-![Device Overview Screenshot](./screenshots/device-overview.png)
+![Device Overview Screenshot](./screenshots/tongquanthietbi.PNG)
+
+![Device Viewer](./screenshots/nguoixemthietbi.PNG)
+
+![Device Attributes](./screenshots/thuoctinhthietbi.PNG)
 
 _Replace with actual screenshot_
 
@@ -313,13 +334,15 @@ _Replace with actual screenshot_
 
 Trang theo dõi cảnh báo: danh sách luật cảnh báo và lịch sử các lần trigger theo thiết bị.
 
-![Alerts Screenshot](./screenshots/alerts.png)
+![Alerts Screenshot](./screenshots/canhbao.PNG)
+
+![Alerts History](./screenshots/lichsucanhbao.PNG)
 
 _Replace with actual screenshot_
 
 ## 11) Gợi ý phát triển tiếp
 
-- Bổ sung Telegram sender thực tế + retry queue.
+- Bổ sung retry queue cho Telegram sender khi gặp lỗi mạng/API.
 - Thêm migration tool (Alembic) thay vì `create_all`.
 - Tách secret/JWT key ra biến môi trường.
 - Thêm test tự động cho API và hooks frontend.
