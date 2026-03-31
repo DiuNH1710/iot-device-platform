@@ -1,7 +1,3 @@
-/**
- * Nhãn giao diện tiếng Việt (tập trung, tái sử dụng).
- * Không đổi tên export `vi` để import nhất quán.
- */
 export const vi = {
   common: {
     loading: "Đang tải…",
