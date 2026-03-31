@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, Text, ForeignKey, DateTime
 from app.database.db import Base
 
 
@@ -18,3 +18,6 @@ class AlertRule(Base):
     message = Column(Text)
 
     enabled = Column(Boolean, default=True)
+    cooldown_seconds = Column(Integer, default=300)
+    last_triggered_at = Column(DateTime, nullable=True)
+    is_triggered = Column(Boolean, default=False)
