@@ -31,7 +31,7 @@ function formatTime(iso) {
  * @param {string} metricKey
  */
 export function TelemetryChart({ telemetry, metricKey, loading }) {
-  if (loading) {
+  if (loading && telemetry.length === 0) {
     return (
       <div className="flex h-72 items-center justify-center text-slate-500">
         {vi.telemetry.loadingChart}
@@ -116,7 +116,6 @@ export function TelemetryChart({ telemetry, metricKey, loading }) {
             strokeWidth={2}
             dot={false}
             name={metricKey}
-            isAnimationActive={false}
           />
         </LineChart>
       </ResponsiveContainer>

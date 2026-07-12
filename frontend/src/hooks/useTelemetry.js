@@ -19,47 +19,62 @@ export function useTelemetry(deviceId, opts = {}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const refresh = useCallback(async () => {
-    if (deviceId == null || deviceId === "") return;
-    setLoading(true);
-    setError(null);
-    try {
-      const params = { limit };
-      if (timeRangePreset != null && timeRangePreset !== "") {
-        const p = presetToQueryParams(timeRangePreset);
-        if (p.from_time) params.from_time = p.from_time;
-        if (p.to_time) params.to_time = p.to_time;
-      } else {
-        if (from_time) params.from_time = from_time;
-        if (to_time) params.to_time = to_time;
+  const refresh = useCallback(
+    async (showLoading = true) => {
+      if (deviceId == null || deviceId === "") return;
+
+      if (showLoading) {
+        setLoading(true);
       }
-      const { data } = await api.get(`/devices/${deviceId}/telemetry`, {
-        params,
-        headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
-      });
-      // setTelemetry(Array.isArray(data) ? data : []);
-      // sửa lại chỉ refresh khi có data mới
-      const next = Array.isArray(data) ? data : [];
 
-      setTelemetry((prev) => {
-        if (prev.length === next.length) {
-          const prevLast = prev[prev.length - 1];
-          const nextLast = next[next.length - 1];
+      setError(null);
 
-          if (prevLast?.created_at === nextLast?.created_at) {
-            return prev;
-          }
+      try {
+        const params = { limit };
+
+        if (timeRangePreset != null && timeRangePreset !== "") {
+          const p = presetToQueryParams(timeRangePreset);
+
+          if (p.from_time) params.from_time = p.from_time;
+          if (p.to_time) params.to_time = p.to_time;
+        } else {
+          if (from_time) params.from_time = from_time;
+          if (to_time) params.to_time = to_time;
         }
 
-        return next;
-      });
-    } catch (e) {
-      setError(e);
-      setTelemetry([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [deviceId, limit, timeRangePreset, from_time, to_time]);
+        const { data } = await api.get(`/devices/${deviceId}/telemetry`, {
+          params,
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
+
+        const next = Array.isArray(data) ? data : [];
+
+        setTelemetry((prev) => {
+          if (prev.length === next.length) {
+            const prevLast = prev[prev.length - 1];
+            const nextLast = next[next.length - 1];
+
+            if (prevLast?.created_at === nextLast?.created_at) {
+              return prev;
+            }
+          }
+
+          return next;
+        });
+      } catch (e) {
+        setError(e);
+        setTelemetry([]);
+      } finally {
+        if (showLoading) {
+          setLoading(false);
+        }
+      }
+    },
+    [deviceId, limit, timeRangePreset, from_time, to_time],
+  );
 
   // useEffect(() => {
   //   refresh()
@@ -67,11 +82,13 @@ export function useTelemetry(deviceId, opts = {}) {
 
   // sửa lại cho tự refresh mỗi 5s
   useEffect(() => {
+    // load lần đầu
     refresh();
 
+    // polling
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") {
-        refresh();
+        refresh(false);
       }
     }, 5000);
 

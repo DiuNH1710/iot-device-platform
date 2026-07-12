@@ -23,7 +23,7 @@ def send_telemetry():
             print(f"[{DEVICE['name']}] Sent:", payload, "Status:", res.status_code)
         except Exception as e:
             print(e)
-        time.sleep(3)
+        time.sleep(1)
 
 if __name__=="__main__":
     send_telemetry()
