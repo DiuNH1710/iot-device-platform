@@ -106,32 +106,40 @@ export function useLatestTelemetry(deviceId) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const refresh = useCallback(async () => {
-    if (deviceId == null || deviceId === "") return;
-    setLoading(true);
-    setError(null);
-    try {
-      const { data } = await api.get(`/devices/${deviceId}/telemetry/latest`);
-      setLatest(data);
-    } catch (e) {
-      setError(e);
-      setLatest(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [deviceId]);
+  const refresh = useCallback(
+    async (showLoading = true) => {
+      if (deviceId == null || deviceId === "") return;
+      if (showLoading) {
+        setLoading(true);
+      }
+      setError(null);
+      try {
+        const { data } = await api.get(`/devices/${deviceId}/telemetry/latest`);
+        setLatest(data);
+      } catch (e) {
+        setError(e);
+        setLatest(null);
+      } finally {
+        if (showLoading) {
+          setLoading(false);
+        }
+      }
+    },
+    [deviceId],
+  );
 
   // useEffect(() => {
   //   refresh()
   // }, [refresh])
 
-  // tự động refresh mỗi 5s
   useEffect(() => {
+    // Load lần đầu
     refresh();
 
+    // Auto refresh mỗi 5 giây
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") {
-        refresh();
+        refresh(false);
       }
     }, 5000);
 
@@ -150,30 +158,37 @@ export function useTelemetryStats(deviceId, metric) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const refresh = useCallback(async () => {
-    if (
-      deviceId == null ||
-      deviceId === "" ||
-      !metric ||
-      !String(metric).trim()
-    ) {
-      setStats(null);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const { data } = await api.get(`/devices/${deviceId}/telemetry/stats`, {
-        params: { metric: String(metric).trim() },
-      });
-      setStats(data);
-    } catch (e) {
-      setError(e);
-      setStats(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [deviceId, metric]);
+  const refresh = useCallback(
+    async (showLoading = true) => {
+      if (
+        deviceId == null ||
+        deviceId === "" ||
+        !metric ||
+        !String(metric).trim()
+      ) {
+        setStats(null);
+        return;
+      }
+      if (showLoading) {
+        setLoading(true);
+      }
+      setError(null);
+      try {
+        const { data } = await api.get(`/devices/${deviceId}/telemetry/stats`, {
+          params: { metric: String(metric).trim() },
+        });
+        setStats(data);
+      } catch (e) {
+        setError(e);
+        setStats(null);
+      } finally {
+        if (showLoading) {
+          setLoading(false);
+        }
+      }
+    },
+    [deviceId, metric],
+  );
 
   // useEffect(() => {
   //   refresh()
@@ -181,11 +196,13 @@ export function useTelemetryStats(deviceId, metric) {
 
   // tự động refresh mỗi 5s
   useEffect(() => {
+    // load lần đầu
     refresh();
 
+    // polling
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") {
-        refresh();
+        refresh(false);
       }
     }, 5000);
 
