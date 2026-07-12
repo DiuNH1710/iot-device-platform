@@ -147,7 +147,7 @@ Kích hoạt môi trường ảo:
 - Windows (PowerShell):
 
 ```powershell
-.venv\Scripts\Activate.ps1
+venv\Scripts\activate
 ```
 
 - macOS/Linux:
