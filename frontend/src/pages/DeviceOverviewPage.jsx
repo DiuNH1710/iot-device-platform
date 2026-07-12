@@ -56,10 +56,18 @@ export function DeviceOverviewPage() {
     });
   }, [metrics]);
 
-  const { stats, loading: statsLoading } = useTelemetryStats(
-    deviceId,
-    statsMetric,
-  );
+  // const { stats, loading: statsLoading } = useTelemetryStats(
+  //   deviceId,
+  //   statsMetric,
+  // );
+
+  // sửa lại cho tự refresh mỗi 5s
+  const {
+    stats,
+    loading: statsLoading,
+    refresh: refreshStats,
+  } = useTelemetryStats(deviceId, statsMetric);
+
   const {
     rules,
     loading: rulesLoading,
